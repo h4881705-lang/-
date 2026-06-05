@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دانا ۴.۰ — دستیار هوشمند</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<style>
+:root{
+  --bg:#060610;--s1:rgba(255,255,255,.04);--s2:rgba(255,255,255,.07);--s3:rgba(255,255,255,.11);
+  --b1:rgba(255,255,255,.08);--b2:rgba(255,255,255,.15);
+  --p1:#a78bfa;--p2:#818cf8;--p3:#38bdf8;--g1:#34d399;--amber:#fbbf24;--red:#f87171;
+  --tx:#f0f0ff;--txd:rgba(240,240,255,.5);--txdd:rgba(240,240,255,.25);
+  --r:20px;--rsm:12px;--rxs:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Vazirmatn',sans-serif;overflow:hidden}
+.orb{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0}
+.o1{width:550px;height:550px;background:radial-gradient(circle,rgba(167,139,250,.13) 0%,transparent 70%);top:-120px;right:-120px;animation:drift 20s ease-in-out infinite alternate}
+.o2{width:420px;height:420px;background:radial-gradient(circle,rgba(56,189,248,.1) 0%,transparent 70%);bottom:-100px;left:-100px;animation:drift 25s ease-in-out infinite alternate-reverse}
+.o3{width:300px;height:300px;background:radial-gradient(circle,rgba(52,211,153,.08) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:porb 9s ease-in-out infinite}
+@keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(45px,35px) scale(1.12)}}
+@keyframes porb{0%,100%{opacity:.5;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.25)}}
+@keyframes hspin{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blink{0%,100%{opacity:.2;transform:scale(.85)}50%{opacity:1;transform:scale(1.1)}}
+@keyframes pdot{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes modalIn{from{opacity:0;transform:scale(.88) translateY(22px)}to{opacity:1;transform:none}}
+@keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(248,113,113,.5)}70%{box-shadow:0 0 0 10px rgba(248,113,113,0)}100%{box-shadow:0 0 0 0 rgba(248,113,113,0)}}
+@keyframes mic-active{0%,100%{box-shadow:0 0 0 0 rgba(248,113,113,.6)}50%{box-shadow:0 0 0 8px rgba(248,113,113,.15)}}
+
+#app{position:relative;z-index:1;height:100vh;display:grid;grid-template-rows:auto 1fr auto auto;max-width:820px;margin:0 auto}
+
+/* HEADER */
+header{display:flex;align-items:center;justify-content:space-between;padding:13px 20px;background:rgba(6,6,16,.85);backdrop-filter:blur(30px);border-bottom:1px solid var(--b1);position:relative;flex-shrink:0;gap:10px}
+header::after{content:'';position:absolute;bottom:0;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,var(--p1),var(--p2),transparent);opacity:.4}
+.brand{display:flex;align-items:center;gap:11px;flex-shrink:0}
+.borb{width:40px;height:40px;border-radius:50%;background:conic-gradient(from 180deg,#a78bfa,#818cf8,#38bdf8,#34d399,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 18px rgba(167,139,250,.4);animation:hspin 10s linear infinite;position:relative}
+.borb::before{content:'';position:absolute;inset:2px;border-radius:50%;background:var(--bg);z-index:0}
+.borb span{position:relative;z-index:1}
+.btext h1{font-size:.9rem;font-weight:700;letter-spacing:.04em}
+.btext p{font-size:.6rem;color:var(--txd);margin-top:1px;font-weight:300}
+.modes{display:flex;gap:4px;background:rgba(255,255,255,.04);border:1px solid var(--b1);padding:4px;border-radius:50px}
+.mbt{border:none;background:transparent;padding:5px 12px;border-radius:50px;font-size:.66rem;color:var(--txd);cursor:pointer;font-family:'Vazirmatn',sans-serif;transition:.25s;white-space:nowrap}
+.mbt.active{background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;box-shadow:0 0 14px rgba(167,139,250,.35)}
+.mbt:not(.active):hover{background:var(--s2);color:var(--tx)}
+.hacts{display:flex;gap:6px;flex-shrink:0}
+.ibt{width:34px;height:34px;border-radius:var(--rxs);border:1px solid var(--b1);background:var(--s1);color:var(--txd);cursor:pointer;font-size:13px;transition:.2s;display:flex;align-items:center;justify-content:center;position:relative}
+.ibt:hover{background:var(--s2);border-color:var(--b2);color:var(--tx)}
+.ibt-badge{position:absolute;top:-5px;left:-5px;min-width:16px;height:16px;background:var(--p1);border-radius:8px;font-size:.55rem;color:#fff;display:flex;align-items:center;justify-content:center;padding:0 3px;font-family:'Vazirmatn',sans-serif}
+
+/* MESSAGES */
+#messages{overflow-y:auto;padding:22px 16px;display:flex;flex-direction:column;gap:18px;scroll-behavior:smooth;min-height:0}
+#messages::-webkit-scrollbar{width:3px}
+#messages::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+
+/* WELCOME */
+#welcome{display:flex;flex-direction:column;align-items:center;padding:28px 16px;text-align:center;gap:16px}
+.worb{width:72px;height:72px;border-radius:50%;background:conic-gradient(from 0deg,#a78bfa,#38bdf8,#34d399,#fbbf24,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 0 40px rgba(167,139,250,.3);animation:hspin 8s linear infinite;position:relative}
+.worb::before{content:'';position:absolute;inset:3px;border-radius:50%;background:var(--bg)}
+.worb span{position:relative;z-index:1}
+#welcome h2{font-size:1.35rem;font-weight:800;background:linear-gradient(135deg,#a78bfa,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+#welcome p{font-size:.8rem;color:var(--txd);max-width:300px;line-height:1.6}
+.qgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;width:100%;max-width:400px}
+.qcard{background:var(--s1);border:1px solid var(--b1);padding:13px 8px;border-radius:var(--r);cursor:pointer;transition:.25s;font-size:.7rem;color:var(--txd);display:flex;flex-direction:column;align-items:center;gap:5px}
+.qcard:hover{background:var(--s2);border-color:var(--b2);color:var(--tx);transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.3)}
+
+/* MSG */
+.mrow{display:flex;gap:10px;align-items:flex-end}
+.mrow.user{flex-direction:row-reverse}
+.mav{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.mrow.dana .mav{background:conic-gradient(from 180deg,#a78bfa,#818cf8,#38bdf8,#a78bfa);box-shadow:0 0 12px rgba(167,139,250,.35);animation:hspin 10s linear infinite;position:relative}
+.mrow.dana .mav::before{content:'';position:absolute;inset:2px;border-radius:50%;background:#0d0d1e}
+.mrow.dana .mav span{position:relative;z-index:1}
+.mrow.user .mav{background:var(--s3);border:1px solid var(--b2)}
+.bubble{max-width:78%;padding:13px 15px;line-height:1.85;font-size:.83rem;position:relative;border-radius:var(--r)}
+.mrow.user .bubble{background:linear-gradient(135deg,rgba(167,139,250,.82),rgba(129,140,248,.82));border-radius:var(--r) var(--r) 6px var(--r);color:#fff;backdrop-filter:blur(20px);box-shadow:0 4px 20px rgba(167,139,250,.22)}
+.mrow.dana .bubble{background:rgba(255,255,255,.05);border:1px solid var(--b1);border-radius:var(--r) var(--r) var(--r) 6px;backdrop-filter:blur(20px);box-shadow:0 4px 24px rgba(0,0,0,.3)}
+.mrow.system .bubble{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);font-size:.74rem;color:var(--amber);text-align:center;max-width:100%}
+.mrow.err .bubble{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);font-size:.77rem;color:var(--red)}
+.bubble h1,.bubble h2,.bubble h3{color:var(--p1);margin:9px 0 5px;font-size:.88rem;font-weight:700}
+.bubble strong{color:var(--p1)}
+.bubble p{margin:5px 0}
+.bubble ul,.bubble ol{margin:7px 0 7px 20px}
+.bubble a{color:var(--p2)}
+.bubble code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;font-size:.79rem}
+.bubble blockquote{border-right:3px solid var(--p1);padding:7px 11px;margin:7px 0;background:rgba(255,255,255,.04);border-radius:0 8px 8px 0;font-style:italic}
+.src-row{margin-top:9px;padding-top:7px;border-top:1px solid var(--b1);display:flex;flex-wrap:wrap;gap:5px}
+.src-chip{font-size:.59rem;padding:3px 9px;border-radius:20px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.25);color:var(--p1);text-decoration:none;transition:.2s}
+.src-chip:hover{background:rgba(167,139,250,.2)}
+.card-btn{margin-top:9px;display:inline-flex;align-items:center;gap:5px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);color:#34d399;padding:5px 13px;border-radius:20px;font-size:.68rem;cursor:pointer;font-family:'Vazirmatn',sans-serif;transition:.2s}
+.card-btn:hover{background:rgba(52,211,153,.2)}
+.typing-bub{display:flex;gap:6px;padding:5px 2px;align-items:center}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--p1);opacity:.5;animation:blink 1.2s ease-in-out infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+
+/* SUGGESTIONS */
+.sugs{display:flex;gap:7px;flex-wrap:nowrap;overflow-x:auto;padding:7px 16px;flex-shrink:0}
+.sugs::-webkit-scrollbar{height:0}
+.sbt{background:var(--s1);border:1px solid var(--b1);padding:6px 13px;border-radius:25px;font-size:.68rem;color:var(--txd);cursor:pointer;font-family:'Vazirmatn',sans-serif;transition:.2s;white-space:nowrap;flex-shrink:0}
+.sbt:hover{background:var(--s2);color:var(--tx);border-color:var(--b2)}
+
+/* INPUT */
+#iarea{padding:9px 15px 15px;background:rgba(6,6,16,.88);backdrop-filter:blur(30px);border-top:1px solid var(--b1);flex-shrink:0}
+#iarea::before{content:'';display:block;height:1px;margin-bottom:9px;background:linear-gradient(90deg,transparent,var(--p1),var(--p3),transparent);opacity:.18}
+.ishell{display:flex;align-items:flex-end;gap:7px;background:rgba(255,255,255,.05);border:1px solid var(--b1);border-radius:var(--r);padding:9px 11px;transition:.2s}
+.ishell:focus-within{border-color:rgba(167,139,250,.4);box-shadow:0 0 0 3px rgba(167,139,250,.08)}
+#uinput{flex:1;background:none;border:none;outline:none;color:var(--tx);font-family:'Vazirmatn',sans-serif;font-size:.84rem;resize:none;max-height:110px;min-height:22px;line-height:1.5}
+#uinput::placeholder{color:var(--txdd)}
+.mic-wrap{position:relative;flex-shrink:0}
+#mic-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--b1);background:var(--s1);color:var(--txd);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;flex-shrink:0}
+#mic-btn.active{border-color:rgba(248,113,113,.6);background:rgba(248,113,113,.12);color:var(--red);animation:mic-active 1s ease infinite}
+#mic-btn:hover:not(.active){background:var(--s2);color:var(--tx)}
+#mic-btn:disabled{opacity:.35;cursor:not-allowed}
+.mic-tip{position:absolute;bottom:calc(100% + 8px);right:0;background:rgba(12,12,28,.97);border:1px solid var(--b2);border-radius:10px;padding:6px 11px;font-size:.63rem;white-space:nowrap;color:var(--txd);opacity:0;transform:translateY(4px);transition:.2s;pointer-events:none;z-index:50;font-family:'Vazirmatn',sans-serif}
+.mic-wrap:hover .mic-tip{opacity:1;transform:translateY(0)}
+#sbtn{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--p1),var(--p2));border:none;cursor:pointer;color:white;font-size:15px;flex-shrink:0;transition:.2s;box-shadow:0 4px 14px rgba(167,139,250,.3);display:flex;align-items:center;justify-content:center}
+#sbtn:hover:not(:disabled){transform:scale(1.07);box-shadow:0 6px 18px rgba(167,139,250,.45)}
+#sbtn:disabled{opacity:.38;cursor:not-allowed;transform:none}
+.ifooter{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:.6rem;color:var(--txdd);padding:0 2px}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--g1);display:inline-block;margin-left:5px;box-shadow:0 0 7px rgba(52,211,153,.5);animation:pdot 2s ease infinite}
+.sdot.busy{background:var(--amber);box-shadow:0 0 7px rgba(251,191,36,.5);animation:none}
+.sdot.rec{background:var(--red);box-shadow:0 0 7px rgba(248,113,113,.6);animation:pdot .7s ease infinite}
+
+/* MODAL */
+.moverlay{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.9);backdrop-filter:blur(22px);display:flex;align-items:center;justify-content:center;padding:18px}
+.mbox{background:rgba(10,10,24,.97);border:1px solid var(--b2);border-radius:26px;max-width:480px;width:100%;padding:26px;box-shadow:0 30px 80px rgba(0,0,0,.65);animation:modalIn .32s cubic-bezier(.34,1.56,.64,1)}
+.mhdr{display:flex;align-items:center;gap:11px;margin-bottom:18px}
+.micon{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--p1),var(--p2));display:flex;align-items:center;justify-content:center;font-size:21px;box-shadow:0 0 18px rgba(167,139,250,.35);flex-shrink:0}
+.mtitle h2{font-size:1.05rem;font-weight:700}
+.mtitle p{font-size:.68rem;color:var(--txd);margin-top:2px}
+.rlist{list-style:none;margin:0 0 18px;display:flex;flex-direction:column;gap:9px}
+.rlist li{display:flex;align-items:flex-start;gap:9px;padding:10px 13px;border-radius:11px;background:var(--s1);border:1px solid var(--b1);font-size:.76rem;line-height:1.6}
+.ri{font-size:.95rem;flex-shrink:0;margin-top:1px}
+.arow{display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:11px;background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.2);cursor:pointer;margin-bottom:15px;transition:.2s}
+.arow:hover{background:rgba(167,139,250,.12)}
+.arow input{accent-color:var(--p1);width:16px;height:16px;cursor:pointer}
+.arow label{font-size:.76rem;cursor:pointer;flex:1}
+.stbtn{width:100%;padding:13px;background:linear-gradient(135deg,var(--p1),var(--p2));border:none;border-radius:13px;color:white;font-weight:700;font-size:.88rem;cursor:pointer;font-family:'Vazirmatn',sans-serif;box-shadow:0 8px 22px rgba(167,139,250,.32);transition:.2s}
+.stbtn:hover:not(:disabled){box-shadow:0 12px 30px rgba(167,139,250,.45);transform:translateY(-1px)}
+.stbtn:disabled{opacity:.32;cursor:not-allowed;transform:none}
+
+/* HISTORY PANEL */
+.hpanel{position:fixed;top:0;right:0;width:280px;height:100vh;background:rgba(8,8,20,.97);border-left:1px solid var(--b2);z-index:1500;transform:translateX(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);backdrop-filter:blur(20px);display:flex;flex-direction:column}
+.hpanel.open{transform:translateX(0)}
+.hphdr{padding:18px 16px 14px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.hphdr h3{font-size:.88rem;font-weight:700}
+.hclose{background:none;border:none;color:var(--txd);font-size:18px;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:.2s}
+.hclose:hover{background:var(--s2);color:var(--tx)}
+.hlist{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:7px}
+.hlist::-webkit-scrollbar{width:3px}
+.hlist::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1)}
+.hitem{background:var(--s1);border:1px solid var(--b1);border-radius:11px;padding:10px 12px;cursor:pointer;transition:.2s}
+.hitem:hover{background:var(--s2);border-color:var(--b2)}
+.hitem-title{font-size:.74rem;font-weight:600;color:var(--tx);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hitem-date{font-size:.6rem;color:var(--txdd)}
+.hitem-del{float:left;background:none;border:none;color:var(--txdd);cursor:pointer;font-size:12px;padding:0 2px;transition:.2s;font-family:'Vazirmatn',sans-serif}
+.hitem-del:hover{color:var(--red)}
+.hempty{text-align:center;padding:30px 16px;color:var(--txdd);font-size:.78rem;line-height:1.7}
+.hfooter{padding:12px 16px;border-top:1px solid var(--b1);flex-shrink:0}
+.hclear-btn{width:100%;padding:9px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:10px;color:var(--red);font-size:.74rem;cursor:pointer;font-family:'Vazirmatn',sans-serif;transition:.2s}
+.hclear-btn:hover{background:rgba(248,113,113,.15)}
+.hpanel-backdrop{position:fixed;inset:0;z-index:1400;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:.3s}
+.hpanel-backdrop.visible{opacity:1;pointer-events:auto}
+
+/* CARD */
+.cprev{background:linear-gradient(145deg,#1a0a2e,#0a1a2e);border-radius:18px;padding:22px;margin-bottom:14px;text-align:center;border:1px solid rgba(167,139,250,.3);min-height:150px;display:flex;align-items:center;justify-content:center}
+.ctxt{color:#e0d4ff;font-size:.84rem;line-height:1.9}
+.svbtn{width:100%;padding:11px;background:linear-gradient(135deg,var(--g1),#059669);border:none;border-radius:11px;color:white;font-weight:600;cursor:pointer;font-family:'Vazirmatn',sans-serif;font-size:.83rem;margin-bottom:7px;transition:.2s}
+.svbtn:hover{opacity:.9}
+.clbtn{width:100%;padding:9px;background:var(--s2);border:1px solid var(--b1);border-radius:11px;color:var(--txd);cursor:pointer;font-family:'Vazirmatn',sans-serif;font-size:.78rem;transition:.2s}
+.clbtn:hover{background:var(--s3);color:var(--tx)}
+
+@media(max-width:540px){
+  .modes{display:none}
+  .qgrid{grid-template-columns:1fr 1fr}
+  .bubble{max-width:88%}
+  .hpanel{width:85vw}
+}
+</style>
+</head>
+<body>
+<div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+
+<!-- History Panel -->
+<div class="hpanel-backdrop" id="hbackdrop" onclick="toggleHistory()"></div>
+<div class="hpanel" id="hpanel">
+  <div class="hphdr">
+    <h3>📂 تاریخچه چت‌ها</h3>
+    <button class="hclose" onclick="toggleHistory()">✕</button>
+  </div>
+  <div class="hlist" id="hlist"></div>
+  <div class="hfooter">
+    <button class="hclear-btn" onclick="clearAllHistory()">🗑 پاک کردن همه</button>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="brand">
+      <div class="borb"><span>✦</span></div>
+      <div class="btext"><h1>دانا ۴.۰</h1><p>دستیار هوشمند با جستجوی واقعی</p></div>
+    </div>
+    <div class="modes" id="msel">
+      <button class="mbt active" data-mode="general">🧠 عمومی</button>
+      <button class="mbt" data-mode="ziyarat">🕋 زیارتی</button>
+      <button class="mbt" data-mode="business">💼 کسب‌وکار</button>
+    </div>
+    <div class="hacts">
+      <button class="ibt" id="hist-btn" onclick="toggleHistory()" title="تاریخچه چت‌ها">📂<span class="ibt-badge" id="hist-count" style="display:none">0</span></button>
+      <button class="ibt" onclick="saveCurrentChat()" title="ذخیره چت فعلی">💾</button>
+      <button class="ibt" onclick="clearChat()" title="چت جدید">✏️</button>
+    </div>
+  </header>
+
+  <div id="messages">
+    <div id="welcome">
+      <div class="worb"><span>✦</span></div>
+      <h2>دانا ۴.۰</h2>
+      <p>جستجوی واقعی در ویکی‌پدیا و منابع معتبر — آماده پاسخگویی</p>
+      <div class="qgrid">
+        <div class="qcard" onclick="setModeAndAsk('general','هوش مصنوعی')"><span style="font-size:1.3rem">🧠</span><span>هوش مصنوعی</span></div>
+        <div class="qcard" onclick="setModeAndAsk('ziyarat','دعای فرج')"><span style="font-size:1.3rem">🕋</span><span>دعای فرج</span></div>
+        <div class="qcard" onclick="setModeAndAsk('business','استارتاپ')"><span style="font-size:1.3rem">💼</span><span>کسب‌وکار</span></div>
+        <div class="qcard" onclick="setModeAndAsk('general','پایتون چیست')"><span style="font-size:1.3rem">🐍</span><span>پایتون</span></div>
+        <div class="qcard" onclick="setModeAndAsk('ziyarat','تسبیح')"><span style="font-size:1.3rem">📿</span><span>تسبیحات</span></div>
+        <div class="qcard" onclick="setModeAndAsk('business','بازاریابی')"><span style="font-size:1.3rem">📈</span><span>بازاریابی</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sugs">
+    <button class="sbt" onclick="insertQ('تهران')">🌆 تهران</button>
+    <button class="sbt" onclick="insertQ('ایران')">🇮🇷 ایران</button>
+    <button class="sbt" onclick="insertQ('اسلام')">☪️ اسلام</button>
+    <button class="sbt" onclick="insertQ('فناوری')">💻 فناوری</button>
+    <button class="sbt" onclick="insertQ('تاریخ ایران')">🏛 تاریخ</button>
+    <button class="sbt" onclick="insertQ('علم فیزیک')">⚛️ فیزیک</button>
+  </div>
+
+  <div id="iarea">
+    <div class="ishell">
+      <textarea id="uinput" placeholder="سوال خود را بپرسید..." rows="1" disabled></textarea>
+      <div class="mic-wrap">
+        <button id="mic-btn" title="تبدیل گفتار به متن" disabled>🎙️</button>
+        <div class="mic-tip" id="mic-tip">کلیک کنید و صحبت کنید...</div>
+      </div>
+      <button id="sbtn" onclick="sendMessage()" disabled>➤</button>
+    </div>
+    <div class="ifooter">
+      <span><span class="sdot" id="sdot"></span><span id="stxt">در انتظار پذیرش قوانین</span></span>
+      <span>Enter ارسال &nbsp;|&nbsp; Shift+Enter خط جدید</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let busy=false, chatEnabled=false, currentMode='general';
+let recognition=null, isRecording=false;
+let currentChatMessages=[];
+const ta=document.getElementById('uinput');
+
+// ═══════════════════════════════════════════
+// BANNED WORDS (safety filter)
+// ═══════════════════════════════════════════
+const BANNED=[
+  // فحش فارسی
+  'کیر','کس','کون','جنده','فاحشه','لاشی','مادرجنده','پدرجنده','ننه‌جنده','بیناموس','حرومزاده','گاییدن','کردن','گاییده','کسکش','کونی','اوناموس',
+  'آشغال','خفه','گمشو',
+  // انگلیسی
+  'fuck','shit','bitch','nigger','nigga','whore','cunt','asshole','bastard','cock','pussy',
+  // محتوای خطرناک
+  'بمب','انفجار','ترور','کشتار','خودکشی','مواد مخدر','هروئین','شیشه','ساخت سلاح'
+];
+function hasBanned(msg){
+  const low=msg.toLowerCase();
+  return BANNED.some(w=>low.includes(w.toLowerCase()));
+}
+
+// ═══════════════════════════════════════════
+// GREETINGS
+// ═══════════════════════════════════════════
+const GREET_RX=[
+  /^سلام/,/^درود/,/^خوبی/,/^حالت/,/^چطوری/,/^چطور هستی/,/^هستی\b/,
+  /^صبح بخیر/,/^عصر بخیر/,/^شب بخیر/,/^وقت بخیر/,/^hi\b/i,/^hello\b/i,/^hey\b/i,/^خداحافظ/,/^ممنون/,/^مرسی/,/^تشکر/
+];
+const GREET_RESP={
+  greet:['👋 سلام! خوشحالم که اینجایی. دانا ۴.۰ آماده‌ست — چطور کمکت کنم؟','✨ سلام گرم! حالت خوبه؟ بپرس تا کمک کنم 😊','🌟 سلام! دانا در خدمته. چه موضوعی رو بررسی کنیم؟'],
+  bye:['🌟 خداحافظ! هر وقت نیاز داشتی برگرد 😊','✨ موفق باشی! مراقب خودت باش 🙏'],
+  thanks:['🤝 خواهش می‌کنم! خوشحالم که کمک کردم.','💜 لطف داری! هر سوال دیگه‌ای داشتی بپرس.']
+};
+function classifyGreet(msg){
+  const t=msg.trim();
+  // exact bye
+  if(/^(خداحافظ|خدانگهدار|بای|bye|goodbye)[\s!.،]*$/i.test(t)) return 'bye';
+  // exact thanks
+  if(/^(ممنون|مرسی|تشکر|سپاس|ممنونم|متشکرم|thank you|thanks)[\s!.،]*$/i.test(t)) return 'thanks';
+  // greet: ONLY if the message starts with a greeting word AND has no question content after it
+  // (avoids "سلام ایران چیست" being treated as greeting)
+  const startsWithGreet=GREET_RX.some(r=>r.test(t));
+  if(startsWithGreet){
+    // if there's meaningful content after the greeting word, don't classify as greeting
+    const stripped=t.replace(/^(سلام|درود|hi|hello|hey|صبح بخیر|عصر بخیر|شب بخیر|وقت بخیر)[\s,،!]*/i,'').trim();
+    if(stripped.length>4) return null; // has a real question after greeting
+    return 'greet';
+  }
+  return null;
+}
+function rnd(arr){return arr[Math.floor(Math.random()*arr.length)]}
+
+// ═══════════════════════════════════════════
+// WIKIPEDIA API (with CORS proxy fallback)
+// ═══════════════════════════════════════════
+async function wikiSearch(query, lang='fa'){
+  const base=`https://${lang}.wikipedia.org/w/api.php`;
+  const controller=new AbortController();
+  const tid=setTimeout(()=>controller.abort(),9000);
+  try{
+    const sr=await fetch(`${base}?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*&srlimit=2`,{signal:controller.signal}).then(r=>r.json());
+    clearTimeout(tid);
+    const page=sr.query?.search?.[0];
+    if(!page) return null;
+    const controller2=new AbortController();
+    const tid2=setTimeout(()=>controller2.abort(),9000);
+    const cr=await fetch(`${base}?action=query&prop=extracts&exintro=true&explaintext=true&pageids=${page.pageid}&format=json&origin=*`,{signal:controller2.signal}).then(r=>r.json());
+    clearTimeout(tid2);
+    const ex=cr.query?.pages?.[page.pageid]?.extract;
+    if(ex&&ex.trim().length>80){
+      return{title:page.title,content:ex.substring(0,1600),url:`https://${lang}.wikipedia.org/wiki/${encodeURIComponent(page.title)}`,source:lang==='fa'?'ویکی‌پدیای فارسی':'Wikipedia (EN)'};
+    }
+  }catch(e){}
+  return null;
+}
+
+// ═══════════════════════════════════════════
+// DUCKDUCKGO INSTANT ANSWER
+// ═══════════════════════════════════════════
+async function ddgSearch(query){
+  const controller=new AbortController();
+  setTimeout(()=>controller.abort(),8000);
+  try{
+    const d=await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`,{signal:controller.signal}).then(r=>r.json());
+    const ans=d.AbstractText||d.Answer;
+    if(ans&&ans.length>60){
+      return{title:d.Heading||query,content:ans.substring(0,1000),url:d.AbstractURL||'https://duckduckgo.com',source:'DuckDuckGo'};
+    }
+    // Try related topics
+    if(d.RelatedTopics&&d.RelatedTopics.length>0){
+      const topics=d.RelatedTopics.filter(t=>t.Text).slice(0,4).map(t=>t.Text).join('\n\n');
+      if(topics.length>80) return{title:query,content:topics,url:'https://duckduckgo.com',source:'DuckDuckGo'};
+    }
+  }catch(e){}
+  return null;
+}
+
+// ═══════════════════════════════════════════
+// OPEN-METEO (weather for Tehran as demo)
+// ═══════════════════════════════════════════
+async function getWeather(city){
+  // Simple geocode for major Iranian cities
+  const cities={تهران:{lat:35.69,lon:51.39},مشهد:{lat:36.29,lon:59.61},اصفهان:{lat:32.66,lon:51.68},شیراز:{lat:29.59,lon:52.58},تبریز:{lat:38.07,lon:46.29}};
+  const c=cities[city]||cities['تهران'];
+  try{
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=Asia/Tehran`).then(r=>r.json());
+    const cur=r.current;
+    const wmap={0:'آفتابی ☀️',1:'عمدتاً آفتابی 🌤',2:'نیمه ابری ⛅',3:'ابری 🌥',45:'مه‌آلود 🌫',48:'مه‌آلود 🌫',51:'نم‌نم باران 🌦',61:'باران 🌧',80:'رگبار 🌧',95:'رعد و برق ⛈',99:'طوفان ⛈'};
+    const wdesc=wmap[cur.weather_code]||'نامشخص';
+    return{title:`آب و هوای ${city}`,content:`**دما:** ${cur.temperature_2m}°C\n**وضعیت:** ${wdesc}\n**رطوبت:** ${cur.relative_humidity_2m}%\n**سرعت باد:** ${cur.wind_speed_10m} km/h`,url:'https://open-meteo.com',source:'Open-Meteo'};
+  }catch(e){}
+  return null;
+}
+
+// ═══════════════════════════════════════════
+// MAIN RESPONSE ENGINE
+// ═══════════════════════════════════════════
+async function getResponse(msg, mode){
+  // Weather detection
+  const weatherCities=['تهران','مشهد','اصفهان','شیراز','تبریز','کرج','اهواز'];
+  if(/آب و هوا|هوا|دما|درجه|باران|برف/.test(msg)){
+    const city=weatherCities.find(c=>msg.includes(c))||'تهران';
+    const wr=await getWeather(city);
+    if(wr) return{text:`### ${wr.title}\n\n${wr.content}`,sources:[wr]};
+  }
+
+  // Run all searches in parallel
+  const [fa, en, ddg] = await Promise.allSettled([
+    wikiSearch(msg,'fa'),
+    wikiSearch(msg,'en'),
+    ddgSearch(msg)
+  ]);
+
+  const faR=fa.status==='fulfilled'?fa.value:null;
+  const enR=en.status==='fulfilled'?en.value:null;
+  const ddgR=ddg.status==='fulfilled'?ddg.value:null;
+
+  if(mode==='ziyarat'){
+    const best=faR||enR||ddgR;
+    if(best) return{text:`🕋 ### ${best.title}\n\n${best.content}\n\n> *برای متن کامل به مفاتیح الجنان مراجعه کنید.*`,sources:[best]};
+    return{text:`📿 ### ${msg}\n\nبرای یافتن متن دقیق، به **مفاتیح الجنان** مراجعه فرمایید.\n\n**اعمال پربرکت:**\n- 🌟 دعای فرج\n- 📿 زیارت عاشورا\n- 🤲 دعای کمیل\n- ✨ تسبیح حضرت زهرا (س)`,sources:[]};
+  }
+
+  if(mode==='business'){
+    const best=ddgR||faR||enR;
+    if(best) return{text:`💼 ### ${best.title}\n\n${best.content}`,sources:[best]};
+    return{text:`💡 ### راهنمای کسب‌وکار دیجیتال\n\n- **فروش آنلاین** محصولات پرطرفدار\n- **تولید محتوا** و بازاریابی شبکه‌های اجتماعی\n- **مشاوره تخصصی** آنلاین\n- **آموزش مجازی** مهارت‌های دیجیتال\n\n> سوال خود را دقیق‌تر بپرسید.`,sources:[]};
+  }
+
+  // General: prefer FA wiki, fallback EN, fallback DDG
+  const best=faR||ddgR||enR;
+  if(best) return{text:`### ${best.title}\n\n${best.content}`,sources:[best]};
+
+  return{text:`🔍 **"${msg}"** در ویکی‌پدیا و منابع معتبر یافت نشد.\n\n**پیشنهادات:**\n- کلیدواژه‌های ساده‌تر استفاده کنید (مثلاً «ایران» به جای «تاریخ کامل ایران»)\n- سوال را به فارسی ساده بنویسید\n- حالت مناسب (زیارتی/کسب‌وکار) را انتخاب کنید`,sources:[]};
+}
+
+// ═══════════════════════════════════════════
+// SPEECH RECOGNITION
+// ═══════════════════════════════════════════
+function initSpeech(){
+  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SpeechRecognition){
+    document.getElementById('mic-tip').textContent='مرورگر شما از گفتار پشتیبانی نمی‌کند';
+    return;
+  }
+  recognition=new SpeechRecognition();
+  recognition.lang='fa-IR';
+  recognition.continuous=false;
+  recognition.interimResults=true;
+  recognition.maxAlternatives=1;
+
+  recognition.onstart=()=>{
+    isRecording=true;
+    document.getElementById('mic-btn').classList.add('active');
+    document.getElementById('sdot').classList.add('rec');
+    document.getElementById('stxt').textContent='در حال ضبط... صحبت کنید';
+    document.getElementById('mic-tip').textContent='کلیک کنید تا متوقف شود';
+  };
+  recognition.onresult=(e)=>{
+    let interim='', final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal) final+=e.results[i][0].transcript;
+      else interim+=e.results[i][0].transcript;
+    }
+    ta.value=final||interim;
+    ta.style.height='auto';
+    ta.style.height=Math.min(ta.scrollHeight,110)+'px';
+  };
+  recognition.onerror=(e)=>{
+    stopRecording();
+    if(e.error==='not-allowed') addMsg('err','❌ دسترسی به میکروفون رد شد. لطفاً در تنظیمات مرورگر اجازه دهید.');
+    else if(e.error==='no-speech') addMsg('system','🎙 صدایی شنیده نشد. دوباره امتحان کنید.');
+  };
+  recognition.onend=()=>{ stopRecording(); if(ta.value.trim()) sendMessage(); };
+
+  const micBtn=document.getElementById('mic-btn');
+  micBtn.disabled=false;
+  micBtn.addEventListener('click',()=>{
+    if(!chatEnabled) return;
+    if(isRecording){ recognition.stop(); }
+    else{ try{ recognition.start(); }catch(e){} }
+  });
+}
+
+function stopRecording(){
+  isRecording=false;
+  document.getElementById('mic-btn').classList.remove('active');
+  document.getElementById('sdot').classList.remove('rec');
+  document.getElementById('stxt').textContent='آماده پاسخگویی';
+  document.getElementById('mic-tip').textContent='کلیک کنید و صحبت کنید...';
+}
+
+// ═══════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════
+function fmtBubble(text, sources=[]){
+  let html=DOMPurify.sanitize(marked.parse(text));
+  if(sources.length>0){
+    const links=sources.filter(s=>s.url).map(s=>`<a href="${s.url}" target="_blank" rel="noopener" class="src-chip">📚 ${s.source}</a>`).join('');
+    html+=`<div class="src-row">${links}</div>`;
+  }
+  if(currentMode==='ziyarat'){
+    html+=`<button class="card-btn" onclick="makeCard(this)">🖼️ ساخت کارت دعا</button>`;
+  }
+  return html;
+}
+
+function addMsg(role, content, sources=[]){
+  const msgs=document.getElementById('messages');
+  const wel=document.getElementById('welcome');
+  if(wel) wel.style.display='none';
+
+  const row=document.createElement('div');
+  row.className='mrow '+role;
+
+  if(role==='user'||role==='dana'){
+    const av=document.createElement('div');
+    av.className='mav';
+    av.innerHTML=role==='dana'?'<span>✦</span>':'👤';
+    row.appendChild(av);
+  }
+
+  const bub=document.createElement('div');
+  bub.className='bubble';
+  if(role==='dana') bub.innerHTML=fmtBubble(content,sources);
+  else if(role==='user') bub.textContent=content;
+  else bub.innerHTML=DOMPurify.sanitize(content);
+
+  row.appendChild(bub);
+  if(role==='system'||role==='err') row.style.justifyContent='center';
+  msgs.appendChild(row);
+  msgs.scrollTop=msgs.scrollHeight;
+
+  if(typeof gsap!=='undefined'){
+    gsap.fromTo(row,{opacity:0,y:13},{opacity:1,y:0,duration:.36,ease:'power3.out'});
+  }
+
+  // store in current chat
+  if(role==='user'||role==='dana'){
+    currentChatMessages.push({role,content,sources,ts:Date.now()});
+  }
+  return row;
+}
+
+let tcnt=0;
+function addTyping(){
+  const id='t-'+(++tcnt);
+  const msgs=document.getElementById('messages');
+  const row=document.createElement('div');
+  row.className='mrow dana'; row.id=id;
+  row.innerHTML='<div class="mav"><span>✦</span></div><div class="bubble"><div class="typing-bub"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>';
+  msgs.appendChild(row);
+  msgs.scrollTop=msgs.scrollHeight;
+  return id;
+}
+function remTyping(id){ document.getElementById(id)?.remove(); }
+
+function setBusy(s){
+  busy=s;
+  document.getElementById('sbtn').disabled=s;
+  const dot=document.getElementById('sdot'), txt=document.getElementById('stxt');
+  if(s){ dot.classList.add('busy'); txt.textContent='در حال جستجو...'; }
+  else{ dot.classList.remove('busy'); txt.textContent='آماده پاسخگویی'; }
+}
+
+// ═══════════════════════════════════════════
+// SEND
+// ═══════════════════════════════════════════
+async function sendMessage(txt){
+  const msg=(txt||ta.value).trim();
+  if(!msg||busy||!chatEnabled) return;
+
+  // Safety filter
+  if(hasBanned(msg)){
+    ta.value=''; ta.style.height='auto';
+    addMsg('err','🚫 پیام شما حاوی محتوای نامناسب است. لطفاً از کلمات مؤدبانه استفاده کنید.');
+    return;
+  }
+
+  ta.value=''; ta.style.height='auto';
+  setBusy(true);
+  addMsg('user',msg);
+
+  const gc=classifyGreet(msg);
+  if(gc){
+    addMsg('dana',rnd(GREET_RESP[gc]),[]);
+    setBusy(false);
+    return;
+  }
+
+  const tid=addTyping();
+  try{
+    const res=await getResponse(msg,currentMode);
+    remTyping(tid);
+    addMsg('dana',res.text,res.sources||[]);
+  }catch(e){
+    remTyping(tid);
+    addMsg('err','❌ خطا در ارتباط با منابع. اینترنت را بررسی کنید.');
+  }
+  setBusy(false);
+}
+
+function insertQ(q){
+  if(!chatEnabled) return;
+  ta.value=q; ta.focus();
+  ta.style.height='auto';
+  ta.style.height=Math.min(ta.scrollHeight,110)+'px';
+}
+
+function setModeAndAsk(mode,q){
+  if(!chatEnabled) return;
+  currentMode=mode;
+  document.querySelectorAll('.mbt').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
+  sendMessage(q);
+}
+
+// ═══════════════════════════════════════════
+// CHAT HISTORY (localStorage)
+// ═══════════════════════════════════════════
+function getHistory(){
+  try{ return JSON.parse(localStorage.getItem('dana_history')||'[]'); }
+  catch(e){ return []; }
+}
+function saveHistory(arr){
+  try{ localStorage.setItem('dana_history',JSON.stringify(arr)); }catch(e){}
+}
+
+function saveCurrentChat(){
+  if(currentChatMessages.length===0){ addMsg('system','💡 هنوز پیامی برای ذخیره وجود ندارد.'); return; }
+  const hist=getHistory();
+  const firstUser=currentChatMessages.find(m=>m.role==='user');
+  const title=firstUser?firstUser.content.substring(0,40):'چت بدون عنوان';
+  hist.unshift({id:Date.now(),title,messages:currentChatMessages,date:new Date().toLocaleDateString('fa-IR')});
+  if(hist.length>30) hist.splice(30);
+  saveHistory(hist);
+  updateHistCount();
+  addMsg('system','✅ چت ذخیره شد.');
+}
+
+function loadChat(id){
+  const hist=getHistory();
+  const chat=hist.find(c=>c.id===id);
+  if(!chat) return;
+  toggleHistory();
+  // Clear messages
+  const msgs=document.getElementById('messages');
+  msgs.innerHTML='';
+  currentChatMessages=[];
+  // Replay
+  chat.messages.forEach(m=>{
+    if(m.role==='user'){
+      const row=document.createElement('div');
+      row.className='mrow user';
+      const av=document.createElement('div'); av.className='mav'; av.textContent='👤';
+      const bub=document.createElement('div'); bub.className='bubble'; bub.textContent=m.content;
+      row.appendChild(av); row.appendChild(bub);
+      msgs.appendChild(row);
+    } else if(m.role==='dana'){
+      const row=document.createElement('div');
+      row.className='mrow dana';
+      const av=document.createElement('div'); av.className='mav'; av.innerHTML='<span>✦</span>';
+      const bub=document.createElement('div'); bub.className='bubble';
+      bub.innerHTML=fmtBubble(m.content,m.sources||[]);
+      row.appendChild(av); row.appendChild(bub);
+      msgs.appendChild(row);
+    }
+  });
+  msgs.scrollTop=msgs.scrollHeight;
+  currentChatMessages=[...chat.messages];
+}
+
+function deleteChat(id,e){
+  e.stopPropagation();
+  const hist=getHistory().filter(c=>c.id!==id);
+  saveHistory(hist);
+  renderHistory();
+  updateHistCount();
+}
+
+function clearAllHistory(){
+  if(!confirm('همه تاریخچه پاک شود؟')) return;
+  saveHistory([]);
+  renderHistory();
+  updateHistCount();
+}
+
+function renderHistory(){
+  const list=document.getElementById('hlist');
+  const hist=getHistory();
+  if(hist.length===0){
+    list.innerHTML='<div class="hempty">📭 هنوز چتی ذخیره نشده<br><small>با دکمه 💾 چت‌های خود را ذخیره کنید</small></div>';
+    return;
+  }
+  list.innerHTML=hist.map(c=>`
+    <div class="hitem" onclick="loadChat(${c.id})">
+      <button class="hitem-del" onclick="deleteChat(${c.id},event)">🗑</button>
+      <div class="hitem-title">${DOMPurify.sanitize(c.title)}</div>
+      <div class="hitem-date">${c.date} — ${c.messages.length} پیام</div>
+    </div>
+  `).join('');
+}
+
+function updateHistCount(){
+  const n=getHistory().length;
+  const badge=document.getElementById('hist-count');
+  badge.textContent=n;
+  badge.style.display=n>0?'flex':'none';
+}
+
+function toggleHistory(){
+  const panel=document.getElementById('hpanel');
+  const bd=document.getElementById('hbackdrop');
+  const open=panel.classList.toggle('open');
+  bd.classList.toggle('visible',open);
+  if(open) renderHistory();
+}
+
+// ═══════════════════════════════════════════
+// CARD MODAL
+// ═══════════════════════════════════════════
+function makeCard(btn){
+  const bub=btn.closest('.bubble');
+  const raw=(bub?.innerText||'').replace(/ساخت کارت دعا/g,'').substring(0,280).trim();
+  const modal=document.createElement('div');
+  modal.className='moverlay';
+  modal.innerHTML=`
+    <div class="mbox">
+      <div class="mhdr"><div class="micon">🕋</div><div class="mtitle"><h2>کارت دعا</h2><p>برای اشتراک‌گذاری</p></div></div>
+      <div class="cprev" id="cprev"><p class="ctxt">${DOMPurify.sanitize(raw)}...</p></div>
+      <button class="svbtn" id="svbtn">📸 ذخیره به عنوان تصویر</button>
+      <button class="clbtn" onclick="this.closest('.moverlay').remove()">بستن</button>
+    </div>`;
+  document.body.appendChild(modal);
+  document.getElementById('svbtn').onclick=async()=>{
+    const el=document.getElementById('cprev');
+    const canvas=await html2canvas(el,{scale:2,backgroundColor:'#1a0a2e',useCORS:true});
+    const a=document.createElement('a'); a.download='dana-prayer.png'; a.href=canvas.toDataURL(); a.click();
+  };
+}
+
+// ═══════════════════════════════════════════
+// CLEAR CHAT
+// ═══════════════════════════════════════════
+function clearChat(){
+  currentChatMessages=[];
+  document.getElementById('messages').innerHTML=`
+    <div id="welcome">
+      <div class="worb"><span>✦</span></div>
+      <h2>دانا ۴.۰</h2>
+      <p>جستجوی واقعی در ویکی‌پدیا و منابع معتبر</p>
+      <div class="qgrid">
+        <div class="qcard" onclick="setModeAndAsk('general','هوش مصنوعی')"><span style="font-size:1.3rem">🧠</span><span>هوش مصنوعی</span></div>
+        <div class="qcard" onclick="setModeAndAsk('ziyarat','دعای فرج')"><span style="font-size:1.3rem">🕋</span><span>دعای فرج</span></div>
+        <div class="qcard" onclick="setModeAndAsk('business','استارتاپ')"><span style="font-size:1.3rem">💼</span><span>کسب‌وکار</span></div>
+        <div class="qcard" onclick="setModeAndAsk('general','پایتون چیست')"><span style="font-size:1.3rem">🐍</span><span>پایتون</span></div>
+        <div class="qcard" onclick="setModeAndAsk('ziyarat','تسبیح')"><span style="font-size:1.3rem">📿</span><span>تسبیحات</span></div>
+        <div class="qcard" onclick="setModeAndAsk('business','بازاریابی')"><span style="font-size:1.3rem">📈</span><span>بازاریابی</span></div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════
+// MODE BUTTONS
+// ═══════════════════════════════════════════
+document.querySelectorAll('.mbt').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    currentMode=btn.dataset.mode;
+    document.querySelectorAll('.mbt').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    if(chatEnabled) addMsg('system',`🔄 حالت به ${btn.textContent.trim()} تغییر یافت`);
+  });
+});
+
+// Textarea auto-resize + Enter
+ta.addEventListener('input',()=>{
+  ta.style.height='auto';
+  ta.style.height=Math.min(ta.scrollHeight,110)+'px';
+});
+ta.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey&&chatEnabled){ e.preventDefault(); sendMessage(); }
+});
+
+// ═══════════════════════════════════════════
+// RULES MODAL
+// ═══════════════════════════════════════════
+function showRules(){
+  const modal=document.createElement('div');
+  modal.className='moverlay';
+  modal.innerHTML=`
+    <div class="mbox">
+      <div class="mhdr"><div class="micon">📜</div><div class="mtitle"><h2>قوانین استفاده</h2><p>لطفاً مطالعه و تأیید کنید</p></div></div>
+      <ul class="rlist">
+        <li><span class="ri">🔍</span> پاسخ‌ها از ویکی‌پدیا، DuckDuckGo و Open-Meteo استخراج می‌شود</li>
+        <li><span class="ri">⚠️</span> اطلاعات ممکن است کامل نباشند؛ همیشه منابع را تأیید کنید</li>
+        <li><span class="ri">🚫</span> استفاده از الفاظ نامناسب، توهین‌آمیز یا مضر ممنوع است</li>
+        <li><span class="ri">🎙️</span> قابلیت تبدیل گفتار به متن با وب‌اسپیچ فعال است</li>
+        <li><span class="ri">💾</span> تاریخچه چت‌ها در مرورگر شما ذخیره می‌شود</li>
+        <li><span class="ri">👤</span> مسئولیت استفاده از اطلاعات با کاربر است</li>
+      </ul>
+      <div class="arow" id="arow">
+        <input type="checkbox" id="ack">
+        <label for="ack">قوانین را خوانده‌ام و می‌پذیرم</label>
+      </div>
+      <button class="stbtn" id="stbtn" disabled>✨ شروع استفاده</button>
+    </div>`;
+  document.body.appendChild(modal);
+  const cb=document.getElementById('ack'), sb=document.getElementById('stbtn');
+  cb.addEventListener('change',()=>sb.disabled=!cb.checked);
+  document.getElementById('arow').addEventListener('click',e=>{
+    if(e.target!==cb){ cb.checked=!cb.checked; sb.disabled=!cb.checked; }
+  });
+  sb.addEventListener('click',()=>{
+    modal.remove();
+    chatEnabled=true;
+    ta.disabled=false;
+    document.getElementById('sbtn').disabled=false;
+    document.getElementById('sdot').classList.remove('busy');
+    document.getElementById('stxt').textContent='آماده پاسخگویی';
+    initSpeech();
+    updateHistCount();
+    addMsg('system','✅ خوش آمدید! دانا ۴.۰ آماده‌ست. سلام بگو یا سوالت رو بپرس 😊');
+    ta.focus();
+  });
+}
+
+window.addEventListener('DOMContentLoaded', showRules);
+</script>
+</body>
+</html>
